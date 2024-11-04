@@ -1,0 +1,27 @@
+from .employees_controller import EmployeesController
+from .requests_controller import RequestsController
+from .equipment_controller import EquipmentController
+from .equipment_changes_controller import EquipmentChangesController
+from .locations_controller import LocationsController
+from .request_status_controller import RequestStatusController
+from .request_priority_controller import RequestPriorityController
+from .request_issue_type_controller import RequestIssueTypeController
+from .software_controller import SoftwareController
+from .software_updates_controller import SoftwareUpdatesController
+from .software_issues_controller import SoftwareIssuesController
+from .requests_has_employees_controller import RequestsHasEmployeesController
+from .requests_has_request_issue_type_controller import RequestsHasRequestIssueTypeController
+
+employees_controller = EmployeesController()
+requests_controller = RequestsController()
+equipment_controller = EquipmentController()
+equipment_changes_controller = EquipmentChangesController()
+locations_controller = LocationsController()
+request_status_controller = RequestStatusController()
+request_priority_controller = RequestPriorityController()
+request_issue_type_controller = RequestIssueTypeController()
+software_controller = SoftwareController()
+software_updates_controller = SoftwareUpdatesController()
+software_issues_controller = SoftwareIssuesController()
+requests_has_employees_controller = RequestsHasEmployeesController()
+requests_has_request_issue_type_controller = RequestsHasRequestIssueTypeController()
