@@ -1,6 +1,6 @@
 from http import HTTPStatus
 from flask import Blueprint, jsonify, Response, request, make_response
-from Lab4DB.app.auth.domain import equipment_changes
+from Lab4DB.app.auth.domain import EquipmentChanges
 from Lab4DB.app.auth.controller import equipment_changes_controller
 
 equipmentchanges_bp = Blueprint('equipmentchanges', __name__, url_prefix='/equipmentchanges')
@@ -22,7 +22,7 @@ def create_equipmentchange() -> Response:
     :return: Response object
     """
     content = request.get_json()
-    equipmentchange_obj = equipment_changes.create_from_dto(content)
+    equipmentchange_obj = EquipmentChanges.create_from_dto(content)
     equipment_changes_controller.create(equipmentchange_obj)
     return make_response(jsonify(equipmentchange_obj.put_into_dto()), HTTPStatus.CREATED)
 
@@ -43,7 +43,7 @@ def update_equipmentchange(equipmentchange_id: int) -> Response:
     :return: Response object
     """
     content = request.get_json()
-    equipmentchange_obj = equipment_changes.create_from_dto(content)
+    equipmentchange_obj = EquipmentChanges.create_from_dto(content)
     equipment_changes_controller.update(equipmentchange_id, equipmentchange_obj)
     return make_response("Equipment change updated", HTTPStatus.OK)
 

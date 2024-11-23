@@ -1,6 +1,6 @@
 from http import HTTPStatus
 from flask import Blueprint, jsonify, Response, request, make_response
-from Lab4DB.app.auth.domain import Locations
+from Lab4DB.app.auth.domain import Locations, Software
 from Lab4DB.app.auth.controller import locations_controller
 from Lab4DB.app import db
 
@@ -65,17 +65,23 @@ def get_requests_for_location(location_id: int) -> Response:
     return make_response(jsonify(requests_dto), HTTPStatus.OK)
 
 
-@locations_bp.get('/<int:location_id>/software')
-def get_software_for_location(location_id: int):
+@locations_bp.get('/all/software')
+def get_all_software_for_all_locations():
     """
-    Gets all software for a specific location.
-    :param location_id: ID of the location
+    Gets all software for each location.
     :return: Response object
     """
-    location = Locations.query.get(location_id)
+    results = db.session.query(Locations, Software).\
+        join(Software, Locations.id == Software.locations_id).\
+        all()
 
-    if location is None:
-        return make_response("Location not found", HTTPStatus.NOT_FOUND)
+    locations_software = {}
+    for location, software in results:
+        if location.id not in locations_software:
+            locations_software[location.id] = {
+                "location": location.put_into_dto(),
+                "softwares": []
+            }
+        locations_software[location.id]["softwares"].append(software.put_into_dto())
 
-    softwares = location.softwares
-    return make_response(jsonify([software.put_into_dto() for software in softwares]), HTTPStatus.OK)
+    return make_response(jsonify(locations_software), HTTPStatus.OK)

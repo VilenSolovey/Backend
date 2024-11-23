@@ -77,9 +77,15 @@ INSERT INTO SoftwareUpdates (id, update_date, software_id, requests_id) VALUES
 
 INSERT INTO requests_has_employees(requests_id, employees_id) VALUES
 (3, 3),
-(4, 4);
+(4, 4),
+(1, 1),
+(2, 2),
+(5, 5);
 
 INSERT INTO requests_has_request_issue_type(requests_id, request_issue_type_id) VALUES
 (3, 3),
-(4, 4)
+(4, 4),
+(1, 1),
+(2, 2),
+(5, 5);
 

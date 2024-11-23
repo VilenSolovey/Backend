@@ -3,6 +3,7 @@ from typing import Dict, Any
 from Lab4DB.app import db
 
 
+
 class Employees(db.Model):
     __tablename__ = 'employees'
 
@@ -14,7 +15,7 @@ class Employees(db.Model):
     phone_number = db.Column(db.String(45), nullable=True)
     middle_name = db.Column(db.String(45), nullable=True)
 
-    requests = db.relationship('Requests', secondary='requests_has_employees', backref='requests_of_employees')
+    requests_has_employee = db.relationship('Requests', secondary='requests_has_employees', back_populates='employees_has_requests')
 
     def __repr__(self) -> str:
         return f"Employees({self.id}, first_name='{self.first_name}', last_name='{self.last_name}')"
@@ -29,15 +30,3 @@ class Employees(db.Model):
             'phone_number': self.phone_number,
             'middle_name': self.middle_name,
         }
-
-    @staticmethod
-    def create_from_dto(dto_dict: Dict[str, Any]) -> Employees:
-        employee = Employees(
-            first_name=dto_dict.get('first_name'),
-            last_name=dto_dict.get('last_name'),
-            position=dto_dict.get('position'),
-            email=dto_dict.get('email'),
-            phone_number=dto_dict.get('phone_number'),
-            middle_name=dto_dict.get('middle_name'),
-        )
-        return employee

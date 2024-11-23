@@ -92,3 +92,23 @@ def get_requests_for_issue_type(issue_type_id: int):
     # Повертаємо запити у вигляді DTO
     requests_dto = [request.put_into_dto() for request in requests]
     return make_response(jsonify(requests_dto), HTTPStatus.OK)
+@requestissuetype_bp.route('/all/requests', methods=['GET'])
+def get_all_requests_for_all_issue_types():
+    """
+    Виводить всі запити для кожного типу проблем.
+    """
+    results = db.session.query(RequestIssueType, Requests).\
+        join(RequestsHasRequestIssueType, RequestIssueType.id == RequestsHasRequestIssueType.request_issue_type_id).\
+        join(Requests, Requests.id == RequestsHasRequestIssueType.requests_id).\
+        all()
+
+    issue_types_requests = {}
+    for issue_type, request in results:
+        if issue_type.id not in issue_types_requests:
+            issue_types_requests[issue_type.id] = {
+                "issue_type": issue_type.put_into_dto(),
+                "requests": []
+            }
+        issue_types_requests[issue_type.id]["requests"].append(request.put_into_dto())
+
+    return jsonify(issue_types_requests), 200

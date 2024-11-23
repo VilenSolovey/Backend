@@ -36,11 +36,55 @@ def get_requesthasemployee(requesthasemployee_id: int) -> Response:
     return make_response(jsonify(requests_has_employees_controller.find_by_id(requesthasemployee_id)), HTTPStatus.OK)
 
 
-@requestshasemployees_bp.delete('/<int:requesthasemployee_id>')
-def delete_requesthasemployee(requesthasemployee_id: int) -> Response:
+@requestshasemployees_bp.delete('/<int:requests_id>/<int:employees_id>')
+def delete_requesthasemployee(requests_id: int, employees_id: int) -> Response:
     """
-    Deletes an entry by ID.
+    Видаляє запис з таблиці Requests_has_Employees за ідентифікаторами requests_id та employees_id.
+    :return: Об'єкт відповіді
+    """
+    requesthasemployee_obj = requests_has_employees_controller.find_by_ids(requests_id, employees_id)
+    if not requesthasemployee_obj:
+        return make_response("Entry not found", HTTPStatus.NOT_FOUND)
+
+
+    requests_has_employees_controller.delete(requests_id, employees_id)
+    return make_response("Entry deleted", HTTPStatus.OK)
+
+@requestshasemployees_bp.patch('/<int:requests_id>/<int:employees_id>')
+def patch_requesthasemployee(requests_id: int, employees_id: int) -> Response:
+    """
+    Updates a specific entry in the Requests_has_Employees table.
     :return: Response object
     """
-    requests_has_employees_controller.delete(requesthasemployee_id)
-    return make_response("Entry deleted", HTTPStatus.OK)
+    content = request.get_json()
+
+    requesthasemployee_obj = requests_has_employees_controller.find_by_ids(requests_id, employees_id)
+    if not requesthasemployee_obj:
+        return make_response("Entry not found", HTTPStatus.NOT_FOUND)
+
+    if "requests_id" in content:
+        requesthasemployee_obj.requests_id = content["requests_id"]
+    if "employees_id" in content:
+        requesthasemployee_obj.employees_id = content["employees_id"]
+
+    requests_has_employees_controller.update(requesthasemployee_obj, requesthasemployee_obj)
+
+    return make_response(jsonify(requesthasemployee_obj.put_into_dto()), HTTPStatus.OK)
+
+
+@requestshasemployees_bp.put('/<int:requests_id>/<int:employees_id>')
+def update_requesthasemployee(requests_id: int, employees_id: int) -> Response:
+    """
+    Оновлює запис в таблиці Requests_has_Employees.
+    :return: Об'єкт відповіді
+    """
+    content = request.get_json()
+
+    new_obj = RequestsHasEmployees.create_from_dto(content)
+    new_obj.requests_id = requests_id
+    new_obj.employees_id = employees_id
+
+    requests_has_employees_controller.update(requests_id, employees_id, new_obj)
+
+    return make_response(jsonify(new_obj.put_into_dto()), HTTPStatus.OK)
+

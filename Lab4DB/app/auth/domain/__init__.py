@@ -10,3 +10,4 @@ from .software_issues import SoftwareIssues
 from .software_updates import SoftwareUpdates
 from .request_has_employees import RequestsHasEmployees
 from .request_has_request_issue_type import RequestsHasRequestIssueType
+from .equipment_changes import EquipmentChanges

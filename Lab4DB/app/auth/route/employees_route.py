@@ -76,26 +76,48 @@ def get_users_for_solar_station(employees_id: int) -> Response:
     return make_response(jsonify(employees_controller.find_by_id(employees_id)), HTTPStatus.OK)
 
 
-@employees_bp.get('/<int:employee_id>/requests')
-def get_requests_for_employee(employee_id: int):
+@employees_bp.route('/all/requests', methods=['GET'])
+def get_all_requests_for_all_employees():
     """
-    Отримує всі запити, пов'язані з конкретним співробітником.
-    :param employee_id: ID співробітника
-    :return: Об'єкт відповіді
+    Виводить всі запити для кожного співробітника.
     """
-    employee = employees_controller.find_by_id(employee_id)
 
-    if employee is None:
-        return make_response("Співробітника не знайдено", HTTPStatus.NOT_FOUND)
-
-    requests = db.session.query(Requests).\
-        join(RequestsHasEmployees, Requests.id == RequestsHasEmployees.requests_id).\
-        filter(RequestsHasEmployees.employees_id == employee_id).\
+    results = db.session.query(Employees, Requests). \
+        join(RequestsHasEmployees, Employees.id == RequestsHasEmployees.employees_id). \
+        join(Requests, Requests.id == RequestsHasEmployees.requests_id). \
         all()
 
-    if not requests:
-        return make_response("Запити не знайдені", HTTPStatus.NOT_FOUND)
+    employees_requests = {}
+    for employee, request in results:
+        if employee.id not in employees_requests:
+            employees_requests[employee.id] = {
+                "employee": employee.put_into_dto(),
+                "requests": []
+            }
+        employees_requests[employee.id]["requests"].append(request.put_into_dto())
+
+    return jsonify(employees_requests), 200
 
 
-    requests_dto = [request.put_into_dto() for request in requests]
-    return make_response(jsonify(requests_dto), HTTPStatus.OK)
+@employees_bp.route('/all/employees', methods=['GET'])
+def get_all_employees_for_all_requests():
+    """
+    Виводить всіх співробітників для кожного запиту.
+    """
+
+    results = db.session.query(Requests, Employees). \
+        join(RequestsHasEmployees, Requests.id == RequestsHasEmployees.requests_id). \
+        join(Employees, Employees.id == RequestsHasEmployees.employees_id). \
+        all()
+
+    requests_employees = {}
+    for request, employee in results:
+        if request.id not in requests_employees:
+            requests_employees[request.id] = {
+                "request": request.put_into_dto(),
+                "employees": []
+            }
+        requests_employees[request.id]["employees"].append(employee.put_into_dto())
+
+    return jsonify(requests_employees), 200
+

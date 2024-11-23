@@ -14,11 +14,31 @@ class Requests(db.Model):
     locations_id = db.Column(db.Integer, db.ForeignKey('Locations.id'))
 
     software_updates = db.relationship('SoftwareUpdates', back_populates='request')
+    employees_has_requests = db.relationship('Employees', secondary='requests_has_employees',
+                                             back_populates='requests_has_employee')
+    requests_has_issue = db.relationship('RequestIssueType', secondary='requests_has_request_issue_type',
+                                         back_populates='requests_has_issue')
 
     def __repr__(self) -> str:
         return f"Requests({self.id}, description='{self.description}', creation_time='{self.creation_time}')"
 
     def put_into_dto(self) -> Dict[str, Any]:
+        requests_employees_dto = [
+            {
+                'employee': employee.put_into_dto(),
+                'request': {'id': self.id, 'description': self.description}
+            }
+            for employee in self.employees_has_requests
+        ]
+
+        requests_issue_types_dto = [
+            {
+                'issue_type': issue_type.put_into_dto(),
+                'request': {'id': self.id, 'description': self.description}
+            }
+            for issue_type in self.requests_has_issue
+        ]
+
         return {
             'id': self.id,
             'description': self.description,
@@ -26,15 +46,6 @@ class Requests(db.Model):
             'requeststatus': self.requeststatusid,
             'request_priority_id': self.request_priority_id,
             'locations_id': self.locations_id,
+            'requests_employees': requests_employees_dto,
+            'requests_issue_types': requests_issue_types_dto,
         }
-
-    @staticmethod
-    def create_from_dto(dto_dict: Dict[str, Any]) -> Requests:
-        request = Requests(
-            description=dto_dict.get('description'),
-            creation_time=dto_dict.get('creation_time'),
-            requeststatusid=dto_dict.get('requeststatusid'),
-            request_priority_id=dto_dict.get('request_priority_id'),
-            locations_id=dto_dict.get('locations_id'),
-        )
-        return request

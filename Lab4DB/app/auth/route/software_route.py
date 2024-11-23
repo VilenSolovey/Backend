@@ -68,21 +68,21 @@ def delete_software(software_id: int) -> Response:
     software_controller.delete(software_id)
     return make_response("Software deleted", HTTPStatus.OK)
 
-@software_bp.get('/<int:software_id>/software_issues')
-def get_issues_for_software(software_id: int) -> Response:
+@software_bp.get('/all/software_issues')
+def get_all_issues_for_all_software():
     """
-    Gets all software issues for a specific software.
-    :param software_id: ID of the software
+    Gets all software issues for each software in a single request.
     :return: Response object
     """
+    all_software = Software.query.all()
 
-    software_dto = software_controller.find_by_id(software_id)
+    software_issues_data = {}
+    for software in all_software:
+        issues = SoftwareIssues.query.filter_by(software_id=software.id).all()
 
-    if not software_dto:
-        return make_response("Software not found", HTTPStatus.NOT_FOUND)
+        software_issues_data[software.id] = {
+            "software": software.put_into_dto(),
+            "issues": [issue.put_into_dto() for issue in issues]
+        }
 
-    software_issues = SoftwareIssues.query.filter_by(software_id=software_id).all()
-
-    sofware_issues_dto = [issue.put_into_dto() for issue in software_issues]
-
-    return make_response(jsonify(sofware_issues_dto), HTTPStatus.OK)
+    return make_response(jsonify(software_issues_data), HTTPStatus.OK)

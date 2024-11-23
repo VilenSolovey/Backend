@@ -8,6 +8,9 @@ class RequestIssueType(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     type = db.Column(db.String(45), nullable=False)
 
+    requests_has_issue = db.relationship('Requests', secondary='requests_has_request_issue_type',
+                                         back_populates='requests_has_issue')
+
     def __repr__(self) -> str:
         return f"RequestIssueType({self.id}, type='{self.type}')"
 
