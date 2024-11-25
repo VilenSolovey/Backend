@@ -3,6 +3,7 @@ from flask import Blueprint, jsonify, Response, request, make_response
 from Lab4DB.app.auth.domain import Software
 from Lab4DB.app.auth.controller import software_controller
 from Lab4DB.app.auth.domain.software_issues import SoftwareIssues
+from Lab4DB.app.auth.domain.software import create_dynamic_databases_from_software
 software_bp = Blueprint('software', __name__, url_prefix='/software')
 
 
@@ -65,8 +66,13 @@ def delete_software(software_id: int) -> Response:
     Deletes a software entry by ID.
     :return: Response object
     """
-    software_controller.delete(software_id)
-    return make_response("Software deleted", HTTPStatus.OK)
+    try:
+        software_controller.delete(software_id)
+        return make_response(jsonify({"message": "Software deleted successfully"}), HTTPStatus.OK)
+
+    except Exception as e:
+        print(f"Error: {e}")
+        return make_response(jsonify({"error": f"An error occurred: {str(e)}"}), HTTPStatus.INTERNAL_SERVER_ERROR)
 
 @software_bp.get('/all/software_issues')
 def get_all_issues_for_all_software():
@@ -86,3 +92,9 @@ def get_all_issues_for_all_software():
         }
 
     return make_response(jsonify(software_issues_data), HTTPStatus.OK)
+@software_bp.route('/create_dynamic_databases', methods=['POST'])
+def create_databases_endpoint():
+    databases = create_dynamic_databases_from_software()
+    if isinstance(databases, str):
+        return jsonify({"error": databases}), HTTPStatus.NOT_FOUND
+    return jsonify({"message": f"Databases and tables created successfully: {databases}"}), HTTPStatus.CREATED

@@ -31,3 +31,19 @@ class Locations(db.Model):
             office_name=dto_dict.get('office_name'),
             workplace_number=dto_dict.get('workplace_number'),
         )
+
+def get_location_stat(stat_type: str) -> Any:
+    if stat_type == 'MAX':
+        result = db.session.query(db.func.max(Locations.room_numbers)).scalar()
+        return result
+    elif stat_type == 'MIN':
+        result = db.session.query(db.func.min(Locations.room_numbers)).scalar()
+        return result
+    elif stat_type == 'SUM':
+        result = db.session.query(db.func.sum(Locations.room_numbers)).scalar()
+        return result
+    elif stat_type == 'AVG':
+        result = db.session.query(db.func.avg(Locations.room_numbers)).scalar()
+        return result
+    else:
+        return -1

@@ -4,9 +4,10 @@ from Lab4DB.app.auth.domain import Employees
 from Lab4DB.app.auth.controller import employees_controller
 from Lab4DB.app import db
 from Lab4DB.app.auth.domain import Requests, RequestsHasEmployees
-
+from Lab4DB.app.auth.domain.employees import insert_employees
 employees_bp = Blueprint('employees', __name__, url_prefix='/employees')
-
+from typing import Union
+from flask import jsonify, request, make_response
 
 @employees_bp.get('')
 def get_all_employees() -> Response:
@@ -23,11 +24,23 @@ def create_employee() -> Response:
     Creates a new employee in the Employees table.
     :return: Response object
     """
-    content = request.get_json()
-    employee_obj = Employees.create_from_dto(content)
-    employees_controller.create(employee_obj)
-    return make_response(jsonify(employee_obj.put_into_dto()), HTTPStatus.CREATED)
+    try:
+        content = request.get_json()
+        if not content:
+            return make_response(jsonify({"error": "No input data provided"}), HTTPStatus.BAD_REQUEST)
 
+        employee_obj = Employees.create_from_dto(content)
+
+        if not employee_obj:
+            return make_response(jsonify({"error": "Failed to create employee. Invalid data."}), HTTPStatus.BAD_REQUEST)
+
+        employees_controller.create(employee_obj)
+
+        return make_response(jsonify(employee_obj.put_into_dto()), HTTPStatus.CREATED)
+
+    except Exception as e:
+        print(f"Error: {e}")
+        return make_response(jsonify({"error": f"An error occurred: {str(e)}"}), HTTPStatus.INTERNAL_SERVER_ERROR)
 
 @employees_bp.get('/<int:employee_id>')
 def get_employee(employee_id: int) -> Response:
@@ -44,11 +57,23 @@ def update_employee(employee_id: int) -> Response:
     Updates an employee by ID.
     :return: Response object
     """
-    content = request.get_json()
-    employee_obj = Employees.create_from_dto(content)
-    employees_controller.update(employee_id, employee_obj)
-    return make_response("Employee updated", HTTPStatus.OK)
+    try:
+        content = request.get_json()
+        if not content:
+            return make_response(jsonify({"error": "No input data provided"}), HTTPStatus.BAD_REQUEST)
 
+        employee_obj = Employees.create_from_dto(content)
+
+        if not employee_obj:
+            return make_response(jsonify({"error": "Failed to update employee. Invalid data."}), HTTPStatus.BAD_REQUEST)
+
+        employees_controller.update(employee_id, employee_obj)
+
+        return make_response(jsonify({"message": "Employee updated successfully"}), HTTPStatus.OK)
+
+    except Exception as e:
+        print(f"Error: {e}")
+        return make_response(jsonify({"error": f"An error occurred: {str(e)}"}), HTTPStatus.INTERNAL_SERVER_ERROR)
 
 @employees_bp.patch('/<int:employee_id>')
 def patch_employee(employee_id: int) -> Response:
@@ -120,4 +145,20 @@ def get_all_employees_for_all_requests():
         requests_employees[request.id]["employees"].append(employee.put_into_dto())
 
     return jsonify(requests_employees), 200
+
+
+@employees_bp.route('/auto_insert', methods=['POST'])
+def auto_employees_create() -> Union[Response, tuple[Response, int]]:
+    num_employees = request.args.get('amount')
+    if not num_employees or not num_employees.isdigit():
+        return jsonify({"error": "Invalid amount"}), 400
+
+    result = insert_employees(int(num_employees))
+
+    if result != -1:
+        res = [employee.put_into_dto() for employee in result]
+        return jsonify({"new_employees": res}), HTTPStatus.CREATED
+    else:
+        return jsonify({"error": "Failed to insert employees"}), 400
+
 

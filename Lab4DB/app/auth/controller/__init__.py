@@ -11,6 +11,7 @@ from .software_updates_controller import SoftwareUpdatesController
 from .software_issues_controller import SoftwareIssuesController
 from .requests_has_employees_controller import RequestsHasEmployeesController
 from .requests_has_request_issue_type_controller import RequestsHasRequestIssueTypeController
+from .tasks_controller import TasksController
 
 employees_controller = EmployeesController()
 requests_controller = RequestsController()
@@ -25,3 +26,4 @@ software_updates_controller = SoftwareUpdatesController()
 software_issues_controller = SoftwareIssuesController()
 requests_has_employees_controller = RequestsHasEmployeesController()
 requests_has_request_issue_type_controller = RequestsHasRequestIssueTypeController()
+tasks_controller = TasksController()

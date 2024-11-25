@@ -31,3 +31,13 @@ class Equipment(db.Model):
             serial_number=dto_dict.get('serial_number'),
             end_of_warranty=dto_dict.get('end_of_warranty'),
         )
+
+def insert_equipment(model: str, type: str, serial_number: int = None, end_of_warranty: str = None) -> Equipment:
+    """
+    Helper function to insert a new equipment into the database.
+    :return: Equipment object
+    """
+    new_equipment = Equipment(model=model, type=type, serial_number=serial_number, end_of_warranty=end_of_warranty)
+    db.session.add(new_equipment)
+    db.session.commit()
+    return new_equipment

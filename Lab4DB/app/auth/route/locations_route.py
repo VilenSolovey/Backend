@@ -3,7 +3,7 @@ from flask import Blueprint, jsonify, Response, request, make_response
 from Lab4DB.app.auth.domain import Locations, Software
 from Lab4DB.app.auth.controller import locations_controller
 from Lab4DB.app import db
-
+from Lab4DB.app.auth.domain.locations import get_location_stat
 locations_bp = Blueprint('locations', __name__, url_prefix='/locations')
 
 
@@ -85,3 +85,17 @@ def get_all_software_for_all_locations():
         locations_software[location.id]["softwares"].append(software.put_into_dto())
 
     return make_response(jsonify(locations_software), HTTPStatus.OK)
+
+@locations_bp.get('/capacity')
+def get_location_capacity_stat() -> Response:
+    """
+    Gets Max, Min, Sum, or Avg for room_numbers from Locations table.
+    The stat_type is passed as a query parameter (e.g., stat_type=MAX).
+    """
+    stat_type = request.args.get('stat_type').upper()
+    result = get_location_stat(stat_type)
+
+    if result != -1:
+        return jsonify({stat_type: result})
+    else:
+        return jsonify({"error": "Invalid stat_type. Use MAX, MIN, SUM, or AVG"}), 400

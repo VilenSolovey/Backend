@@ -11,6 +11,7 @@ from .software_update_service import SoftwareUpdatesService
 from .request_has_employees_service import RequestsHasEmployeesService
 from .requests_has_request_issue_type_service import RequestsHasRequestIssueTypeService
 from .request_issue_type_service import RequestIssueTypeService
+from .tasks_service import TaskService
 
 requests_service = RequestsService()
 request_status_service = RequestStatusService()
@@ -25,3 +26,4 @@ software_updates_service = SoftwareUpdatesService()
 requests_has_employees_service = RequestsHasEmployeesService()
 requests_has_request_issue_type_service = RequestsHasRequestIssueTypeService()
 request_issue_type_service = RequestIssueTypeService()
+tasks_service = TaskService()

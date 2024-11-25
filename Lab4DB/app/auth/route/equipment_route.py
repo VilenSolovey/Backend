@@ -2,7 +2,7 @@ from http import HTTPStatus
 from flask import Blueprint, jsonify, Response, request, make_response
 from Lab4DB.app.auth.domain import Equipment
 from Lab4DB.app.auth.controller import equipment_controller
-
+from ..domain.equipment import insert_equipment
 equipment_bp = Blueprint('equipment', __name__, url_prefix='/equipment')
 
 
@@ -68,4 +68,18 @@ def delete_equipment(equipment_id: int) -> Response:
     equipment_controller.delete(equipment_id)
     return make_response("Equipment deleted", HTTPStatus.OK)
 
+@equipment_bp.route('/parametrized', methods=['POST'])
+def create_parametrized_equipment() -> Response:
+    """
+    Creates a new equipment entry with parameters.
+    :return: Response object
+    """
+    content = request.get_json()
+    new_equipment = insert_equipment(
+        model=content['model'],
+        type=content['type'],
+        serial_number=content.get('serial_number'),
+        end_of_warranty=content.get('end_of_warranty')
+    )
+    return make_response(jsonify(new_equipment.put_into_dto()), HTTPStatus.CREATED)
 
