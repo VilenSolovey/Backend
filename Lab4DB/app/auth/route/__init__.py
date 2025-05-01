@@ -17,6 +17,7 @@ def register_routes(app: Flask) -> None:
     from .request_has_employees_route import requestshasemployees_bp
     from .request_has_request_issue_type_route import requestshasrequestissuetype_bp
     from .request_issue_type_route import requestissuetype_bp
+    from .tasks_route import task_bp
 
     app.register_blueprint(requests_bp)
     app.register_blueprint(requeststatus_bp)
@@ -31,3 +32,4 @@ def register_routes(app: Flask) -> None:
     app.register_blueprint(requestshasemployees_bp)
     app.register_blueprint(requestshasrequestissuetype_bp)
     app.register_blueprint(requestissuetype_bp)
+    app.register_blueprint(task_bp)

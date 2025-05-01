@@ -88,3 +88,17 @@ def update_requesthasemployee(requests_id: int, employees_id: int) -> Response:
 
     return make_response(jsonify(new_obj.put_into_dto()), HTTPStatus.OK)
 
+
+@requestshasemployees_bp.route('/new_link', methods=['POST'])
+def add_employee_to_request():
+    data = request.get_json()
+    description = data['description']
+    first_name = data['first_name']
+    last_name = data['last_name']
+
+    try:
+        new_link = RequestsHasEmployees.add_request_to_employee(description, first_name, last_name)
+        return make_response(jsonify(new_link.put_into_dto()), HTTPStatus.CREATED)
+    except ValueError as e:
+        return make_response(str(e), HTTPStatus.BAD_REQUEST)
+

@@ -11,6 +11,7 @@ from .software_updates_dao import SoftwareUpdatesDAO
 from .software_issues_dao import SoftwareIssuesDAO
 from .requests_has_employees_dao import RequestsHasEmployeesDAO
 from .requests_has_request_issue_type_dao import RequestsHasRequestIssueTypeDAO
+from .tasks_dao import TaskDAO
 
 employees_dao = EmployeesDAO()
 requests_dao = RequestsDAO()
@@ -25,3 +26,4 @@ software_updates_dao = SoftwareUpdatesDAO()
 software_issues_dao = SoftwareIssuesDAO()
 requests_has_employees_dao = RequestsHasEmployeesDAO()
 requests_has_request_issue_type_dao = RequestsHasRequestIssueTypeDAO()
+tasks_dao = TaskDAO()

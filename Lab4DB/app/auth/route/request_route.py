@@ -2,7 +2,7 @@ from http import HTTPStatus
 from flask import Blueprint, jsonify, Response, request, make_response
 from Lab4DB.app.auth.domain import Requests, Employees, RequestsHasEmployees, RequestIssueType, RequestsHasRequestIssueType
 from Lab4DB.app.auth.controller import requests_controller
-from Lab4DB.app.auth.domain import SoftwareUpdates,Software
+from Lab4DB.app.auth.domain import SoftwareUpdates, Software
 from Lab4DB.app import db
 
 requests_bp = Blueprint('requests', __name__, url_prefix='/requests')
@@ -77,7 +77,7 @@ def get_all_software_updates_for_all_requests():
     Gets all software updates for each request in a single request.
     :return: Response object
     """
-    all_requests = Requests.query.all()  # Отримуємо всі записи запитів
+    all_requests = Requests.query.all()
 
     requests_software_updates_data = {}
     for request in all_requests:

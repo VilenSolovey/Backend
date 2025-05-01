@@ -30,3 +30,37 @@ class Employees(db.Model):
             'phone_number': self.phone_number,
             'middle_name': self.middle_name,
         }
+
+    @staticmethod
+    def create_from_dto(dto_dict: Dict[str, Any]) -> Employees:
+
+        return Employees(
+            first_name=dto_dict.get('first_name'),
+            last_name=dto_dict.get('last_name'),
+            position=dto_dict.get('position'),
+            email=dto_dict.get('email'),
+            phone_number=dto_dict.get('phone_number'),
+            middle_name=dto_dict.get('middle_name'),
+        )
+
+def insert_employees(n: int):
+    employees = [
+        Employees(
+            first_name=f"Noname{i}",
+            last_name=f"Lastname{i}",
+            position=f"Position{i}",
+            email=f"noname{i}@example.com",
+            phone_number=f"123-456-789{i}",
+            middle_name=f"MiddleName{i}"
+        )
+        for i in range(n)
+    ]
+
+    try:
+        db.session.bulk_save_objects(employees)
+        db.session.commit()
+        return employees
+    except Exception:
+        db.session.rollback()
+        return -1
+
