@@ -1,21 +1,60 @@
 from http import HTTPStatus
 from flask import Blueprint, jsonify, Response, request, make_response
-from Lab4DB.app.auth.domain import Locations, Software
+from Lab4DB.app.auth.domain import Locations
 from Lab4DB.app.auth.controller import locations_controller
-from Lab4DB.app import db
-from Lab4DB.app.auth.domain.locations import get_location_stat
+from flasgger import swag_from
+
 locations_bp = Blueprint('locations', __name__, url_prefix='/locations')
 
-
 @locations_bp.get('')
+@swag_from({
+    'tags': ['Locations'],
+    'summary': 'Get all locations',
+    'description': 'Returns a list of all locations in the database',
+    'responses': {
+        200: {
+            'description': 'A list of locations',
+            'examples': {
+                'application/json': [
+                    {'id': 1, 'name': 'Headquarters', 'address': 'Main Street 1'}
+                ]
+            }
+        }
+    }
+})
 def get_all_locations() -> Response:
-    """Gets all locations from the Locations table."""
     return make_response(jsonify(locations_controller.find_all()), HTTPStatus.OK)
 
 
 @locations_bp.post('')
+@swag_from({
+    'tags': ['Locations'],
+    'summary': 'Create a new location',
+    'description': 'Adds a new location to the Locations table',
+    'parameters': [
+        {
+            'name': 'body',
+            'in': 'body',
+            'required': True,
+            'schema': {
+                'id': 'Location',
+                'properties': {
+                    'name': {'type': 'string'},
+                    'address': {'type': 'string'}
+                }
+            }
+        }
+    ],
+    'responses': {
+        201: {
+            'description': 'Location created',
+            'examples': {
+                'application/json': {'id': 1, 'name': 'Headquarters', 'address': 'Main Street 1'}
+            }
+        }
+    }
+})
 def create_location() -> Response:
-    """Creates a new location in the Locations table."""
     content = request.get_json()
     location_obj = Locations.create_from_dto(content)
     locations_controller.create(location_obj)
@@ -23,14 +62,43 @@ def create_location() -> Response:
 
 
 @locations_bp.get('/<int:location_id>')
+@swag_from({
+    'tags': ['Locations'],
+    'summary': 'Get location by ID',
+    'parameters': [
+        {'name': 'location_id', 'in': 'path', 'type': 'integer', 'required': True}
+    ],
+    'responses': {
+        200: {
+            'description': 'Location found',
+            'examples': {'application/json': {'id': 1, 'name': 'Headquarters', 'address': 'Main Street 1'}}
+        },
+        404: {'description': 'Location not found'}
+    }
+})
 def get_location(location_id: int) -> Response:
-    """Gets a location by ID."""
     return make_response(jsonify(locations_controller.find_by_id(location_id)), HTTPStatus.OK)
 
 
 @locations_bp.put('/<int:location_id>')
+@swag_from({
+    'tags': ['Locations'],
+    'summary': 'Update location',
+    'parameters': [
+        {'name': 'location_id', 'in': 'path', 'type': 'integer', 'required': True},
+        {
+            'name': 'body',
+            'in': 'body',
+            'required': True,
+            'schema': {
+                'id': 'Location',
+                'properties': {'name': {'type': 'string'}, 'address': {'type': 'string'}}
+            }
+        }
+    ],
+    'responses': {200: {'description': 'Location updated'}}
+})
 def update_location(location_id: int) -> Response:
-    """Updates a location by ID."""
     content = request.get_json()
     location_obj = Locations.create_from_dto(content)
     locations_controller.update(location_id, location_obj)
@@ -38,16 +106,37 @@ def update_location(location_id: int) -> Response:
 
 
 @locations_bp.patch('/<int:location_id>')
+@swag_from({
+    'tags': ['Locations'],
+    'summary': 'Patch location',
+    'parameters': [
+        {'name': 'location_id', 'in': 'path', 'type': 'integer', 'required': True},
+        {
+            'name': 'body',
+            'in': 'body',
+            'required': True,
+            'schema': {
+                'id': 'LocationPatch',
+                'properties': {'name': {'type': 'string'}, 'address': {'type': 'string'}}
+            }
+        }
+    ],
+    'responses': {200: {'description': 'Location patched'}}
+})
 def patch_location(location_id: int) -> Response:
-    """Patches a location by ID."""
     content = request.get_json()
     locations_controller.patch(location_id, content)
     return make_response("Location patched", HTTPStatus.OK)
 
 
 @locations_bp.delete('/<int:location_id>')
+@swag_from({
+    'tags': ['Locations'],
+    'summary': 'Delete location',
+    'parameters': [{'name': 'location_id', 'in': 'path', 'type': 'integer', 'required': True}],
+    'responses': {200: {'description': 'Location deleted'}}
+})
 def delete_location(location_id: int) -> Response:
-    """Deletes a location by ID."""
     locations_controller.delete(location_id)
     return make_response("Location deleted", HTTPStatus.OK)
 

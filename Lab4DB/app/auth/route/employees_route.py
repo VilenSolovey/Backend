@@ -8,72 +8,151 @@ from Lab4DB.app.auth.domain.employees import insert_employees
 employees_bp = Blueprint('employees', __name__, url_prefix='/employees')
 from typing import Union
 from flask import jsonify, request, make_response
+from flask_restx import Namespace
+from flasgger import swag_from
+api = Namespace('employees', description='Employees related operations')
 
 @employees_bp.get('')
+@swag_from({
+    'tags': ['Employees'],
+    'summary': 'Get all employees',
+    'responses': {
+        200: {
+            'description': 'List of all employees',
+            'examples': {
+                'application/json': [
+                    {'id': 1, 'first_name': 'John', 'last_name': 'Doe'}
+                ]
+            }
+        }
+    }
+})
 def get_all_employees() -> Response:
-    """
-    Gets all employees from the Employees table.
-    :return: Response object
-    """
     return make_response(jsonify(employees_controller.find_all()), HTTPStatus.OK)
 
 
 @employees_bp.post('')
+@swag_from({
+    'tags': ['Employees'],
+    'summary': 'Create a new employee',
+    'parameters': [
+        {
+            'name': 'body',
+            'in': 'body',
+            'required': True,
+            'schema': {
+                'id': 'Employee',
+                'properties': {
+                    'first_name': {'type': 'string'},
+                    'last_name': {'type': 'string'},
+                    'position': {'type': 'string'},
+                    'email': {'type': 'string'},
+                    'phone_number': {'type': 'string'},
+                    'middle_name': {'type': 'string'},
+                }
+            }
+        }
+    ],
+    'responses': {
+        201: {
+            'description': 'Employee created successfully',
+            'examples': {
+                'application/json': {
+                    'id': 1, 'first_name': 'John', 'last_name': 'Doe'
+                }
+            }
+        },
+        400: {'description': 'Invalid input data'},
+        500: {'description': 'Internal server error'}
+    }
+})
 def create_employee() -> Response:
-    """
-    Creates a new employee in the Employees table.
-    :return: Response object
-    """
     try:
         content = request.get_json()
         if not content:
             return make_response(jsonify({"error": "No input data provided"}), HTTPStatus.BAD_REQUEST)
 
         employee_obj = Employees.create_from_dto(content)
-
         if not employee_obj:
             return make_response(jsonify({"error": "Failed to create employee. Invalid data."}), HTTPStatus.BAD_REQUEST)
 
         employees_controller.create(employee_obj)
-
         return make_response(jsonify(employee_obj.put_into_dto()), HTTPStatus.CREATED)
-
     except Exception as e:
-        print(f"Error: {e}")
         return make_response(jsonify({"error": f"An error occurred: {str(e)}"}), HTTPStatus.INTERNAL_SERVER_ERROR)
 
+
 @employees_bp.get('/<int:employee_id>')
+@swag_from({
+    'tags': ['Employees'],
+    'summary': 'Get employee by ID',
+    'parameters': [
+        {'name': 'employee_id', 'in': 'path', 'type': 'integer', 'required': True}
+    ],
+    'responses': {
+        200: {'description': 'Employee found'},
+        404: {'description': 'Employee not found'}
+    }
+})
 def get_employee(employee_id: int) -> Response:
-    """
-    Gets an employee by ID.
-    :return: Response object
-    """
     return make_response(jsonify(employees_controller.find_by_id(employee_id)), HTTPStatus.OK)
-
-
 @employees_bp.put('/<int:employee_id>')
+@swag_from({
+    'tags': ['Employees'],
+    'summary': 'Update employee by ID',
+    'parameters': [
+        {'name': 'employee_id', 'in': 'path', 'type': 'integer', 'required': True},
+        {
+            'name': 'body',
+            'in': 'body',
+            'required': True,
+            'schema': {
+                'id': 'Employee',
+                'properties': {
+                    'first_name': {'type': 'string'},
+                    'last_name': {'type': 'string'},
+                    'position': {'type': 'string'},
+                    'email': {'type': 'string'},
+                    'phone_number': {'type': 'string'},
+                    'middle_name': {'type': 'string'},
+                }
+            }
+        }
+    ],
+    'responses': {
+        200: {'description': 'Employee updated successfully'},
+        400: {'description': 'Invalid input data'},
+        500: {'description': 'Internal server error'}
+    }
+})
 def update_employee(employee_id: int) -> Response:
-    """
-    Updates an employee by ID.
-    :return: Response object
-    """
     try:
         content = request.get_json()
         if not content:
             return make_response(jsonify({"error": "No input data provided"}), HTTPStatus.BAD_REQUEST)
-
         employee_obj = Employees.create_from_dto(content)
-
-        if not employee_obj:
-            return make_response(jsonify({"error": "Failed to update employee. Invalid data."}), HTTPStatus.BAD_REQUEST)
-
         employees_controller.update(employee_id, employee_obj)
-
         return make_response(jsonify({"message": "Employee updated successfully"}), HTTPStatus.OK)
-
     except Exception as e:
-        print(f"Error: {e}")
         return make_response(jsonify({"error": f"An error occurred: {str(e)}"}), HTTPStatus.INTERNAL_SERVER_ERROR)
+
+
+@employees_bp.delete('/<int:employee_id>')
+@swag_from({
+    'tags': ['Employees'],
+    'summary': 'Delete employee by ID',
+    'parameters': [
+        {'name': 'employee_id', 'in': 'path', 'type': 'integer', 'required': True}
+    ],
+    'responses': {
+        200: {'description': 'Employee deleted successfully'},
+        404: {'description': 'Employee not found'}
+    }
+})
+def delete_employee(employee_id: int) -> Response:
+    employees_controller.delete(employee_id)
+    return make_response("Employee deleted", HTTPStatus.OK)
+
 
 @employees_bp.patch('/<int:employee_id>')
 def patch_employee(employee_id: int) -> Response:
@@ -84,17 +163,6 @@ def patch_employee(employee_id: int) -> Response:
     content = request.get_json()
     employees_controller.patch(employee_id, content)
     return make_response("Employee updated", HTTPStatus.OK)
-
-
-@employees_bp.delete('/<int:employee_id>')
-def delete_employee(employee_id: int) -> Response:
-    """
-    Deletes an employee by ID.
-    :return: Response object
-    """
-    employees_controller.delete(employee_id)
-    return make_response("Employee deleted", HTTPStatus.OK)
-
 
 @employees_bp.route('/employees/<int:employees_id>/user', methods=['GET'])
 def get_users_for_solar_station(employees_id: int) -> Response:

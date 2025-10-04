@@ -1,28 +1,65 @@
 from http import HTTPStatus
 from flask import Blueprint, jsonify, Response, request, make_response
-from Lab4DB.app.auth.domain import Requests, Employees, RequestsHasEmployees, RequestIssueType, RequestsHasRequestIssueType
+from Lab4DB.app.auth.domain import Requests
 from Lab4DB.app.auth.controller import requests_controller
-from Lab4DB.app.auth.domain import SoftwareUpdates, Software
-from Lab4DB.app import db
+from flasgger import swag_from
 
 requests_bp = Blueprint('requests', __name__, url_prefix='/requests')
 
 
 @requests_bp.get('')
+@swag_from({
+    'tags': ['Requests'],
+    'summary': 'Get all requests',
+    'description': 'Returns a list of all requests in the database',
+    'responses': {
+        200: {
+            'description': 'List of requests',
+            'examples': {
+                'application/json': [
+                    {"id": 1, "description": "Network issue", "status": "Pending"},
+                    {"id": 2, "description": "Printer not working", "status": "Resolved"}
+                ]
+            }
+        }
+    }
+})
 def get_all_requests() -> Response:
-    """
-    Gets all requests from the Requests table.
-    :return: Response object
-    """
     return make_response(jsonify(requests_controller.find_all()), HTTPStatus.OK)
 
 
 @requests_bp.post('')
+@swag_from({
+    'tags': ['Requests'],
+    'summary': 'Create a new request',
+    'description': 'Creates a new request entry in the Requests table',
+    'parameters': [
+        {
+            'name': 'body',
+            'in': 'body',
+            'required': True,
+            'schema': {
+                'id': 'Request',
+                'properties': {
+                    'description': {'type': 'string'},
+                    'creation_time': {'type': 'string', 'format': 'date-time'},
+                    'requeststatusid': {'type': 'integer'},
+                    'requestpriority_id': {'type': 'integer'},
+                    'locations_id': {'type': 'integer'}
+                }
+            }
+        }
+    ],
+    'responses': {
+        201: {
+            'description': 'Request created',
+            'examples': {
+                'application/json': {"id": 1, "description": "New request created"}
+            }
+        }
+    }
+})
 def create_request() -> Response:
-    """
-    Creates a new request in the Requests table.
-    :return: Response object
-    """
     content = request.get_json()
     request_obj = Requests.create_from_dto(content)
     requests_controller.create(request_obj)
@@ -30,20 +67,52 @@ def create_request() -> Response:
 
 
 @requests_bp.get('/<int:request_id>')
+@swag_from({
+    'tags': ['Requests'],
+    'summary': 'Get request by ID',
+    'parameters': [
+        {'name': 'request_id', 'in': 'path', 'type': 'integer', 'required': True}
+    ],
+    'responses': {
+        200: {
+            'description': 'Request found',
+            'examples': {
+                'application/json': {"id": 1, "description": "Network issue", "status": "Pending"}
+            }
+        },
+        404: {'description': 'Request not found'}
+    }
+})
 def get_request(request_id: int) -> Response:
-    """
-    Gets a request by ID.
-    :return: Response object
-    """
     return make_response(jsonify(requests_controller.find_by_id(request_id)), HTTPStatus.OK)
 
 
 @requests_bp.put('/<int:request_id>')
+@swag_from({
+    'tags': ['Requests'],
+    'summary': 'Update a request',
+    'description': 'Updates a request entry by ID',
+    'parameters': [
+        {'name': 'request_id', 'in': 'path', 'type': 'integer', 'required': True},
+        {
+            'name': 'body',
+            'in': 'body',
+            'required': True,
+            'schema': {
+                'properties': {
+                    'description': {'type': 'string'},
+                    'requeststatusid': {'type': 'integer'},
+                    'requestpriority_id': {'type': 'integer'},
+                    'locations_id': {'type': 'integer'}
+                }
+            }
+        }
+    ],
+    'responses': {
+        200: {'description': 'Request updated'}
+    }
+})
 def update_request(request_id: int) -> Response:
-    """
-    Updates a request by ID.
-    :return: Response object
-    """
     content = request.get_json()
     request_obj = Requests.create_from_dto(content)
     requests_controller.update(request_id, request_obj)
@@ -51,22 +120,38 @@ def update_request(request_id: int) -> Response:
 
 
 @requests_bp.patch('/<int:request_id>')
+@swag_from({
+    'tags': ['Requests'],
+    'summary': 'Patch request',
+    'description': 'Updates only provided fields of a request',
+    'parameters': [
+        {'name': 'request_id', 'in': 'path', 'type': 'integer', 'required': True},
+        {'name': 'body', 'in': 'body', 'schema': {'type': 'object'}}
+    ],
+    'responses': {
+        200: {'description': 'Request patched'}
+    }
+})
 def patch_request(request_id: int) -> Response:
-    """
-    Patches a request by ID.
-    :return: Response object
-    """
     content = request.get_json()
     requests_controller.patch(request_id, content)
     return make_response("Request updated", HTTPStatus.OK)
 
 
 @requests_bp.delete('/<int:request_id>')
+@swag_from({
+    'tags': ['Requests'],
+    'summary': 'Delete a request',
+    'description': 'Deletes a request entry by ID',
+    'parameters': [
+        {'name': 'request_id', 'in': 'path', 'type': 'integer', 'required': True}
+    ],
+    'responses': {
+        200: {'description': 'Request deleted'},
+        404: {'description': 'Request not found'}
+    }
+})
 def delete_request(request_id: int) -> Response:
-    """
-    Deletes a request by ID.
-    :return: Response object
-    """
     requests_controller.delete(request_id)
     return make_response("Request deleted", HTTPStatus.OK)
 

@@ -2,25 +2,57 @@ from http import HTTPStatus
 from flask import Blueprint, jsonify, Response, request, make_response
 from Lab4DB.app.auth.domain.tasks import Tasks
 from Lab4DB.app.auth.controller import tasks_controller
-from Lab4DB.app.auth.domain import Employees
+from flasgger import swag_from
+
 task_bp = Blueprint('task', __name__, url_prefix='/tasks')
 
 
 @task_bp.get('')
+@swag_from({
+    'tags': ['Tasks'],
+    'summary': 'Get all tasks',
+    'description': 'Returns a list of all tasks from the Tasks table',
+    'responses': {
+        200: {
+            'description': 'List of tasks',
+            'examples': {
+                'application/json': [
+                    {"id": 1, "title": "Fix bug", "status": "Open"},
+                    {"id": 2, "title": "Deploy app", "status": "In progress"}
+                ]
+            }
+        }
+    }
+})
 def get_all_tasks() -> Response:
-    """
-    Gets all tasks entries from the Tasks table.
-    :return: Response object
-    """
     return make_response(jsonify(tasks_controller.find_all()), HTTPStatus.OK)
 
 
 @task_bp.post('')
+@swag_from({
+    'tags': ['Tasks'],
+    'summary': 'Create a new task',
+    'parameters': [
+        {
+            'name': 'body',
+            'in': 'body',
+            'required': True,
+            'schema': {
+                'id': 'Task',
+                'properties': {
+                    'title': {'type': 'string'},
+                    'description': {'type': 'string'},
+                    'status': {'type': 'string'}
+                }
+            }
+        }
+    ],
+    'responses': {
+        201: {'description': 'Task created'},
+        400: {'description': 'Invalid input'}
+    }
+})
 def create_task() -> Response:
-    """
-    Creates a new task entry in the Tasks table.
-    :return: Response object
-    """
     content = request.get_json()
     try:
         task_obj = Tasks.create_from_dto(content)
@@ -31,20 +63,34 @@ def create_task() -> Response:
 
 
 @task_bp.get('/<int:task_id>')
+@swag_from({
+    'tags': ['Tasks'],
+    'summary': 'Get task by ID',
+    'parameters': [
+        {'name': 'task_id', 'in': 'path', 'required': True, 'type': 'integer'}
+    ],
+    'responses': {
+        200: {'description': 'Task found'},
+        404: {'description': 'Task not found'}
+    }
+})
 def get_task(task_id: int) -> Response:
-    """
-    Gets a task entry by ID.
-    :return: Response object
-    """
     return make_response(jsonify(tasks_controller.find_by_id(task_id)), HTTPStatus.OK)
 
 
 @task_bp.put('/<int:task_id>')
+@swag_from({
+    'tags': ['Tasks'],
+    'summary': 'Update task',
+    'parameters': [
+        {'name': 'task_id', 'in': 'path', 'required': True, 'type': 'integer'},
+        {'name': 'body', 'in': 'body', 'required': True, 'schema': {'type': 'object'}}
+    ],
+    'responses': {
+        200: {'description': 'Task updated'}
+    }
+})
 def update_task(task_id: int) -> Response:
-    """
-    Updates a task entry by ID.
-    :return: Response object
-    """
     content = request.get_json()
     task_obj = Tasks.create_from_dto(content)
     tasks_controller.update(task_id, task_obj)
@@ -52,22 +98,37 @@ def update_task(task_id: int) -> Response:
 
 
 @task_bp.patch('/<int:task_id>')
+@swag_from({
+    'tags': ['Tasks'],
+    'summary': 'Patch task',
+    'description': 'Updates only specified fields of a task',
+    'parameters': [
+        {'name': 'task_id', 'in': 'path', 'required': True, 'type': 'integer'},
+        {'name': 'body', 'in': 'body', 'required': True, 'schema': {'type': 'object'}}
+    ],
+    'responses': {
+        200: {'description': 'Task patched'}
+    }
+})
 def patch_task(task_id: int) -> Response:
-    """
-    Patches a task entry by ID.
-    :return: Response object
-    """
     content = request.get_json()
     tasks_controller.patch(task_id, content)
     return make_response("Task patched", HTTPStatus.OK)
 
 
 @task_bp.delete('/<int:task_id>')
+@swag_from({
+    'tags': ['Tasks'],
+    'summary': 'Delete task',
+    'parameters': [
+        {'name': 'task_id', 'in': 'path', 'required': True, 'type': 'integer'}
+    ],
+    'responses': {
+        200: {'description': 'Task deleted'},
+        404: {'description': 'Task not found'}
+    }
+})
 def delete_task(task_id: int) -> Response:
-    """
-    Deletes a task entry by ID.
-    :return: Response object
-    """
     tasks_controller.delete(task_id)
     return make_response("Task deleted", HTTPStatus.OK)
 

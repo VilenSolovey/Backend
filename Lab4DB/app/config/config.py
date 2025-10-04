@@ -1,3 +1,11 @@
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
 class Config:
-    SQLALCHEMY_DATABASE_URI = 'mysql://root:11111111@127.0.0.1/Lab4DB'
+    SQLALCHEMY_DATABASE_URI = (
+        f"mysql://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}"
+        f"@{os.getenv('DB_HOST')}/{os.getenv('DB_NAME')}"
+    )
     SQLALCHEMY_TRACK_MODIFICATIONS = False

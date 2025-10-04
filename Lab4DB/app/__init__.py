@@ -6,15 +6,25 @@ from Lab4DB.app.auth.route import register_routes
 import os
 import sys
 from mysql.connector import Error
-print(sys.path)
+from dotenv import load_dotenv
+env_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), ".env")
+load_dotenv()
 db = SQLAlchemy()
-
-
+from flask_restx import Api
+from flasgger import Swagger
+base_dir = os.path.dirname(os.path.abspath(__file__))
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
+    app.config["SWAGGER"] = {
+        "title": "IT SERVICE REQUEST MANAGER API",
+        "uiversion": 3
+    }
+
+
     db.init_app(app)
     register_routes(app)
+    Swagger(app)
     create_database()
     create_tables(app)
     populate_data()
@@ -25,12 +35,13 @@ def create_app():
 def create_database():
     try:
         connection = mysql.connector.connect(
-            host='127.0.0.1',
-            user='root',
-            password='11111111',
+            host=os.getenv("DB_HOST"),
+            user=os.getenv("DB_USER"),
+            password=os.getenv("DB_PASSWORD"),
+	    database=os.getenv("DB_NAME")
         )
         cursor = connection.cursor()
-        cursor.execute("CREATE DATABASE IF NOT EXISTS Lab4DB")
+        cursor.execute(f"CREATE DATABASE IF NOT EXISTS {os.getenv('DB_NAME')}")
         print("Database created successfully")
     except mysql.connector.Error as err:
         print(f"Error: {err}")
@@ -46,13 +57,13 @@ def create_tables(app):
 
 
 def populate_data():
-    sql_file_path = os.path.abspath('/Users/vilen/PycharmProjects/Lab4BD/Lab4DB/app/data.sql')
+    sql_file_path = os.path.join(base_dir,"app", "data.sql")
     if os.path.exists(sql_file_path):
         connection = mysql.connector.connect(
-            host='127.0.0.1',
-            user='root',
-            password='11111111',
-            database='Lab4DB'
+            host=os.getenv("DB_HOST"),
+            user=os.getenv("DB_USER"),
+            password=os.getenv("DB_PASSWORD"),
+            database=os.getenv("DB_NAME")
         )
         cursor = connection.cursor()
         with open(sql_file_path, 'r') as sql_file:
@@ -73,11 +84,11 @@ def populate_data():
 
 def create_triggers():
     connection = mysql.connector.connect(
-        host='127.0.0.1',
-        user='root',
-        password='11111111',
-        database='Lab4DB'
-    )
+            host=os.getenv("DB_HOST"),
+            user=os.getenv("DB_USER"),
+            password=os.getenv("DB_PASSWORD"),
+            database=os.getenv("DB_NAME")
+        )
     cursor = connection.cursor()
 
     cursor.execute("""
