@@ -1,4 +1,4 @@
-# 🛠️ IT Support Ticket System (Flask + SQLAlchemy)
+# 🛠️ IT Service Request Manager (Flask + SQLAlchemy)
 
 This backend project helps manage equipment and software issue tickets in an IT company. Employees can create requests when something breaks, needs replacement, or when software doesn’t work properly.
 
