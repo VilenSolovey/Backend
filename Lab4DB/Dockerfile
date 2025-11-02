@@ -12,4 +12,4 @@ ENV FLASK_APP=app.py
 ENV FLASK_RUN_HOST=0.0.0.0
 
 ENV PYTHONPATH="/app/Lab4DB:${PYTHONPATH}"
-CMD ["python", "-m", "Lab4DB.app"]
+CMD ["python", "Lab4DB/app.py"]
